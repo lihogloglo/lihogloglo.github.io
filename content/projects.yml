@@ -1,0 +1,163 @@
+# La galerie. Un bloc par projet, édite tout ce que tu veux.
+#
+#   id      identifiant court ; c'est aussi le nom de son dossier d'images : media/<id>/
+#   repo    nom du repo GitHub (sert à la date du dernier commit). Optionnel.
+#   title   un texte, ou { fr: …, en: … }
+#   kind    game | app | explorable | story | engine | tool
+#   format  phone → appli de téléphone : les captures verticales s'affichent côte à côte comme des écrans
+#   fr/en   la phrase courte de la carte. Le *markdown* simple marche, [liens](https://…) compris.
+#   more    la description plus longue, affichée quand on clique sur le projet : { fr: …, en: … }
+#   links   boutons dans la fiche, ex. - { fr: Jouer, en: Play, url: https://… }
+#   pinned  true  → toujours en haut
+#   hidden  true  → masqué sans le supprimer
+#
+# L'ordre de ce fichier ne compte pas : les projets sont triés par dernier commit.
+
+projects:
+  - id: tamagosea
+    repo: TamagoSea
+    title: TamagoSea
+    kind: game
+    format: phone
+    fr: Plus tu travailles, plus un petit sous-marin plonge profond dans les abysses. Les créatures que tu croises sont de vraies espèces.
+    en: Working on the computer powers a deep-sea rover. The longer you work, the deeper you go. The creatures you meet down there are real species.
+    more:
+      fr: |
+        Un petit programme sur ton ordinateur compte le nombre de mots tapés sur le clavier et fait descendre le sous-marin dans une petite fenêtre au coin de l'écran ou sur ton téléphone posé sur le bureau.
+
+        Chaque espèce que tu rencontres rejoint un guide d'espèces (un "pokédex") et tu gagnes des pièces pour acheter des sous-marins capables d'aller de plus en plus profond, ou pour débloquer de nouvelles expéditions.
+      en: |
+        A small program on your computer counts the words you type on the keyboard and sends the sub down, in a little window at the corner of your screen or on your phone propped on the desk.
+
+        Every species you meet joins a field guide (a "Pokédex"), and you earn coins to buy subs that can dive deeper and deeper, or to unlock new expeditions.
+
+  - id: scrib
+    repo: Scrib
+    title: Scrib
+    kind: engine
+    fr: Morrowind sur Bevy. Pas un port très fidèle, plutôt une vision moderne de ce que le jeu pourrait être en 2027.
+    en: Morrowind on Bevy. Not a very faithful port, more a modern take on what the game could be in 2027.
+    more:
+      fr: |
+        Une réimplémentation de Morrowind avec le moteur Bevy. Le jeu tourne à partir de ses fichiers d'origine, mais avec un moteur de rendu moderne, des animations raffinées, un gameplay plus intéressant.
+      en: |
+        A reimplementation of Morrowind on the Bevy engine. The game runs from its original files, but with a modern renderer, refined animation and more interesting gameplay.
+
+  - id: parallax
+    repo: Megalophobia
+    title: Parallax
+    kind: game
+    fr: Un jeu d'horreur cosmique où il faut aller prendre des photos de ce qu'il y a à l'intérieur d'un astéroïde. Avec un gros canon soviétique.
+    en: A cosmic horror game where you go and photograph what lies inside an asteroid. With a big Soviet cannon.
+    more:
+      fr: |
+        Mégalophobie, n.f. : phobie spécifique qui désigne une peur excessive, irrationnelle et persistante face aux objets, structures ou éléments de très grande taille.
+      en: |
+        Megalophobia, n.: a specific phobia; an excessive, irrational and persistent fear of very large objects, structures or things.
+
+  - id: furnace-nine
+    repo: ovid
+    title: Furnace Nine
+    kind: game
+    fr: Un jeu de rôle narratif dans une Rome qui fait sa révolution industrielle en brûlant des souvenirs.
+    en: A narrative RPG in a Rome that fuels its industrial revolution by burning memories.
+    more:
+      fr: |
+        Le souvenir de cette description a été brûlé par l'impérium.
+      en: |
+        The memory of this description has been burned by the Imperium.
+
+  - id: god-swarm
+    repo: doom-swarm
+    title: God Swarm
+    kind: game
+    format: phone
+    fr: Tu es un dieu qui guide une nuée de fidèles pour raser des villes de plus en plus grosses. Sur téléphone.
+    en: You're a god guiding a swarm of followers to raze bigger and bigger cities. On your phone.
+    more:
+      fr: |
+        Plusieurs dieux avec leurs propres pouvoirs, différentes régions avec leurs propres pièges, et de nombreux sorts pour piller et ravager toujours plus efficacement. Attention à l'aube.
+      en: |
+        Several gods, each with their own powers, different regions with their own traps, and plenty of spells to plunder and ravage ever more efficiently. Beware of dawn.
+
+  - id: open-piano-training
+    repo: Open-Piano-Training
+    title: Open Piano Training
+    kind: app
+    fr: Apprendre le piano avec des leçons guidées, un peu de théorie et de l'entraînement d'oreille.
+    en: Learn piano with guided lessons, a bit of theory and ear training.
+    more:
+      fr: |
+        L'appli marche avec un clavier MIDI, le clavier de l'ordinateur ou un piano à l'écran, en français et en anglais. C'est une première version, qui a besoin d'être essayée par de vrais élèves et de vrais profs. Libre et gratuite.
+      en: |
+        The app works with a MIDI keyboard, your computer keyboard or an on-screen piano, in English and French. It's an early version that needs trying by real students and real teachers. Free and open source.
+    links:
+      - { fr: Télécharger, en: Download, url: "https://github.com/lihogloglo/Open-Piano-Training/releases" }
+
+  - id: bromide
+    repo: minilab
+    title: Bromide
+    kind: app
+    format: phone
+    fr: Les photos de ton appareil arrivent sur ton téléphone développées comme sur une vraie pellicule.
+    en: Your camera's photos land on your phone developed like real film.
+    more:
+      fr: |
+        Pour les gens qui n'ont pas de Fujifilm et qui aimeraient faire de l'émulation de film sans passer par leur ordinateur.
+        Tu photographies normalement avec ton appareil et chaque photo arrive sur ton téléphone déjà développée, comme si elle avait été prise sur une vraie pellicule : les couleurs d'un vrai négatif et de son tirage, le grain, le halo rouge autour des lumières.
+      en: |
+        For people who don't own a Fujifilm and would like film emulation without going through their computer.
+        You shoot with your camera as usual, and every photo lands on your phone already developed, as if it had been shot on real film: the colours of a real negative and print, the grain, the red glow around lights.
+
+  - id: samong
+    repo: LearnThai
+    title: Samong
+    kind: app
+    format: phone
+    fr: Une application pour apprendre le vocabulaire thaï, avec des scores pour que mes potes (très compétitifs) se battent à qui en apprendra le plus.
+    en: An app for learning Thai vocabulary, with scores so my (very competitive) friends fight over who learns the most.
+    more:
+      fr: |
+        Une sorte d'Anki fait sur mesure pour le thaï. Des cartes de vocabulaire avec le son et un mode « marche » pour réviser à l'oreille, les mains libres.
+        Et surtout, des scores : on apprend à plusieurs, et chacun voit où en sont les autres. Mes potes sont compétitifs, ça marche très bien.
+      en: |
+        A kind of Anki made to measure for Thai. Vocabulary cards with sound, and a "walk" mode for reviewing by ear, hands free.
+        And above all, scores: we learn as a group, and everyone sees where the others are. My friends are competitive, so it works very well.
+
+  - id: teleprompter
+    repo: Teleprompter
+    title: Teleprompter
+    kind: app
+    format: phone
+    fr: Un prompteur qui t'écoute. Il défile à ton rythme, attend quand tu improvises et te rattrape quand tu reviens au texte.
+    en: A teleprompter that listens. It scrolls at your pace, waits when you improvise and catches up when you get back to the script.
+    more:
+      fr: |
+        Un prompteur pour Android qui s'adapte à toi, et pas l'inverse. Il écoute pendant que tu lis, défile à ton rythme, se fige quand tu improvises et te rattrape quand tu reviens au texte, même si tu reprends une phrase depuis le début.
+        Peut se synchroniser à un vault Obsidian, ou à n'importe quel dossier de notes.
+        Les applis du même genre font payer des modèles de souscription et je trouve ça tellement insupportable que celle-ci est libre et gratuite.
+        Non mais ho.
+      en: |
+        A teleprompter for Android that adapts to you, not the other way round. It listens while you read, scrolls at your pace, freezes when you improvise and catches up when you return to the script, even when you go back to redo a line.
+        It can sync with an Obsidian vault, or any folder of notes.
+        Apps like this one charge subscriptions, and I find that so unbearable that this one is free and open source.
+        I mean, come on.
+
+  - id: the-plot
+    repo: The-Plot
+    title: The Plot
+    kind: app
+    format: phone
+    fr: Un journal intime où ta vie se raconte en arcs narratifs. Totalement dans ma journaling-era en ce moment, ouais ouais.
+    en: A journal where your life unfolds in story arcs. Fully in my journaling era right now, yeah yeah.
+    more:
+      fr: |
+        Un journal pour téléphone où ta vie se raconte comme une série de "plots", d'ères, de quêtes secondaires. Tu écris des notes courtes, et chacune peut appartenir à un ou plusieurs arcs : un voyage, un sport, un projet.
+        Une frise montre ces arcs comme des fils de couleur qui avancent dans le temps, et que tu peux visualiser sur une carte.
+        Tout reste sur ton téléphone, tu peux exporter dans de nombreux formats pour toujours garder le contrôle sur tes données.
+      en: |
+        A phone journal where your life unfolds as a series of "plots", eras and side quests. You write short notes, and each one can belong to one or more arcs: a trip, a sport, a project.
+        A timeline draws those arcs as coloured threads moving through time, and you can see them on a map.
+        Everything stays on your phone, and you can export to many formats so you always keep control of your data.
+    links:
+      - { fr: Google Play, en: Google Play, url: "https://play.google.com/store/apps/details?id=app.theplot.life" }

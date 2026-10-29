@@ -1,0 +1,53 @@
+# Captures automatiques des projets web : `npm run capture` (ou `npm run capture -- tamagosea`).
+#
+#   serve    un dossier à servir (l'appli web construite, ex. dist/), puis `open` est le chemin dedans
+#   open     sinon : un fichier local, ou une adresse (http://localhost:5173 si tu lances le projet avec npm run dev)
+#   size     taille de la fenêtre, [largeur, hauteur]. Format téléphone : [430, 932]
+#   mobile   true → se comporte comme un téléphone (tactile)
+#   scale    netteté des captures d'écran (2 = écran retina)
+#   storage  valeurs à mettre dans le localStorage avant d’ouvrir (pour sauter une intro, par exemple)
+#   steps    ce qu'on fait avant : click (texte ou sélecteur CSS), tap: [x, y], type (texte), press (touche), scroll, wait (ms)
+#   record   secondes de vidéo. Sans ça, c'est une capture d'écran.
+#   name     nom du fichier dans media/<id>/ (défaut : capture)
+
+# Un projet peut avoir plusieurs captures : une liste, comme ici.
+tamagosea:
+  - serve: D:/Gamedev/Tamagosea/display
+    open: index.html?demo=1&lang=fr&auto=1&speed=30&dive=medium&depth=600
+    size: [540, 960]   # le jeu fait 180×320, ×3
+    mobile: true
+    storage: &tamagosea-storage
+      tamagosea.intro: "1"
+      tamagosea.demo: { lang: fr, telemetry: false }
+    steps:
+      - wait: 3000
+    record: 8
+    name: 01-plongee
+
+  - serve: D:/Gamedev/Tamagosea/display
+    open: index.html?demo=1&lang=fr&auto=1&speed=30&dive=long&depth=3200&all=1
+    size: [540, 960]
+    mobile: true
+    storage: *tamagosea-storage
+    steps:
+      - wait: 6000
+    name: 02-abysses
+
+  - serve: D:/Gamedev/Tamagosea/display
+    open: index.html?demo=1&lang=fr&all=1&page=guide
+    size: [540, 960]
+    mobile: true
+    storage: *tamagosea-storage
+    steps:
+      - wait: 2500
+    name: 03-guide
+
+god-swarm:
+  serve: D:/Gamedev/Doom Swarm/dist-proto
+  open: index.html?nomenu=1&region=glassmarsh&raid=1&god=ember-khan&auto=expert
+  size: [430, 932]
+  mobile: true
+  steps:
+    - wait: 6000
+  record: 6
+  name: 01-raid

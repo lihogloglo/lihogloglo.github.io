@@ -1,0 +1,12 @@
+# Réglages généraux du site.
+
+title: lihogloglo
+github: lihogloglo
+
+# Nom de domaine perso. Laisser vide tant que tu n'en as pas : le site reste sur
+# https://lihogloglo.github.io. Quand tu en achètes un, écris-le ici (ex. lihogloglo.fr).
+domain:
+
+tagline:
+  fr: Les projets sur lesquels je travaille en ce moment (triés par date de modification).
+  en: The projects I'm working on right now (sorted by last change).
