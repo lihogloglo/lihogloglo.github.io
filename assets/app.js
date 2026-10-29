@@ -33,6 +33,7 @@ const io = 'IntersectionObserver' in window && !still
 
 function watchVideos(root) {
   for (const v of root.querySelectorAll('video')) {
+    if (!still && v.closest('[data-slides]')) continue; // the slideshow plays those
     if (io) io.observe(v);
     else {
       v.preload = 'metadata';
@@ -41,6 +42,75 @@ function watchVideos(root) {
         v.paused ? v.play() : v.pause();
       });
     }
+  }
+}
+
+// Slideshows: a picture stays DWELL ms, a video stays until it has played through once.
+const DWELL = 4000;
+
+function slideshow(items, show) {
+  let i = 0;
+  let timer = 0;
+  let running = false;
+  const video = (k) => items[k].querySelector('video');
+
+  function hold() {
+    clearTimeout(timer);
+    const v = video(i);
+    if (!v) {
+      timer = setTimeout(next, DWELL);
+      return;
+    }
+    v.currentTime = 0;
+    v.onended = next;
+    v.play().catch(() => (timer = setTimeout(next, DWELL))); // autoplay refused: treat it as a picture
+  }
+
+  function next() {
+    if (!running) return;
+    const v = video(i);
+    if (v) v.onended = null;
+    v?.pause();
+    i = (i + 1) % items.length;
+    show(i);
+    hold();
+  }
+
+  return {
+    start(from = i) {
+      if (running) return;
+      running = true;
+      i = from;
+      show(i);
+      hold();
+    },
+    stop() {
+      running = false;
+      clearTimeout(timer);
+      const v = video(i);
+      if (v) v.onended = null;
+      v?.pause();
+    },
+  };
+}
+
+// Cards: slides cross-fade, only while the card is on screen.
+if (!still && 'IntersectionObserver' in window) {
+  const shows = new Map();
+  const onScreen = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) e.isIntersecting ? shows.get(e.target).start() : shows.get(e.target).stop();
+    },
+    { threshold: 0.4 }
+  );
+  for (const el of document.querySelectorAll('.grid [data-slides]')) {
+    const slides = [...el.querySelectorAll('.slide')];
+    const dots = [...el.querySelectorAll('.dots i')];
+    shows.set(el, slideshow(slides, (k) => {
+      slides.forEach((s, n) => s.classList.toggle('active', n === k));
+      dots.forEach((d, n) => d.classList.toggle('active', n === k));
+    }));
+    onScreen.observe(el);
   }
 }
 
@@ -54,6 +124,29 @@ const sheet = document.querySelector('dialog.sheet');
 if (sheet) {
   const body = sheet.querySelector('.sheet-body');
   let current = null;
+  let show = null;
+  let idle = 0;
+
+  // The sheet's strip scrolls itself from shot to shot. When the visitor scrolls or
+  // taps it, it stops, and picks up again from where they are after a while.
+  function autoScroll(strip) {
+    const shots = [...strip.children];
+    const centre = (s) => s.getBoundingClientRect().left + s.offsetWidth / 2 - strip.getBoundingClientRect().left;
+    show = slideshow(shots, (k) => {
+      strip.scrollTo({ left: strip.scrollLeft + centre(shots[k]) - strip.clientWidth / 2, behavior: 'smooth' });
+    });
+    const nearest = () => {
+      const d = shots.map((s) => Math.abs(centre(s) - strip.clientWidth / 2));
+      return d.indexOf(Math.min(...d));
+    };
+    const takeOver = () => {
+      show.stop();
+      clearTimeout(idle);
+      idle = setTimeout(() => show.start(nearest()), 8000);
+    };
+    for (const type of ['pointerdown', 'wheel', 'touchstart', 'keydown']) strip.addEventListener(type, takeOver, { passive: true });
+    show.start(0);
+  }
 
   function open(id, push) {
     const tpl = document.getElementById(`detail-${id}`);
@@ -65,9 +158,14 @@ if (sheet) {
     if (push) history.pushState({ project: id }, '', `#${id}`);
     sheet.showModal();
     sheet.scrollTop = 0;
+    const strip = body.querySelector('.shots[data-slides]');
+    if (strip && !still) autoScroll(strip);
   }
 
   sheet.addEventListener('close', () => {
+    show?.stop();
+    show = null;
+    clearTimeout(idle);
     for (const v of body.querySelectorAll('video')) io?.unobserve(v);
     body.replaceChildren();
     if (location.hash === `#${current}`) {

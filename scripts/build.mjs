@@ -93,12 +93,13 @@ function findMedia(id) {
   });
 }
 
-const ratio = (m) => (m.size ? ` style="aspect-ratio:${m.size[0]}/${m.size[1]}"` : "");
+const ratio = (m) => (m.size ? ` style="aspect-ratio:${m.size[0]}/${m.size[1]}"` : '');
 
-function mediaTag(m, alt, { eager = false } = {}) {
+// In a slideshow a video doesn't loop: it plays through once, then the next slide comes.
+function mediaTag(m, alt, { eager = false, loop = true } = {}) {
   const dims = m.size ? ` width="${m.size[0]}" height="${m.size[1]}"` : '';
   if (m.video)
-    return `<video muted loop playsinline preload="${eager ? 'metadata' : 'none'}"${m.poster ? ` poster="${m.poster}"` : ''}${dims} src="${m.video}" aria-label="${esc(alt)}"></video>`;
+    return `<video muted${loop ? ' loop' : ''} playsinline preload="${eager ? 'metadata' : 'none'}"${m.poster ? ` poster="${m.poster}"` : ''}${dims} src="${m.video}" aria-label="${esc(alt)}"></video>`;
   return `<img src="${m.image}" alt="${esc(alt)}"${dims}${eager ? '' : ' loading="lazy"'} decoding="async">`;
 }
 
@@ -155,6 +156,10 @@ function cover(p, title) {
       .slice(0, 3)
       .map((m) => `<div class="screen${m.size && m.size[0] > m.size[1] ? ' wide' : ''}"${ratio(m)}>${mediaTag(m, title)}</div>`)
       .join('')}</div>`;
+  if (p.media.length > 1)
+    return `<div class="media slides" style="${style}" data-slides>${p.media
+      .map((m, i) => `<div class="slide${i ? '' : ' active'}">${mediaTag(m, title, { loop: false })}</div>`)
+      .join('')}<div class="dots" aria-hidden="true">${p.media.map((_, i) => `<i${i ? '' : ' class="active"'}></i>`).join('')}</div></div>`;
   return `<div class="media" style="${style}">${mediaTag(p.media[0], title)}</div>`;
 }
 
@@ -189,8 +194,8 @@ function detail(p, lang) {
   // each line of `more` is its own paragraph, blank line or not
   const text = (pick(p.more, lang) ?? pick(p, lang) ?? '').replace(/\n+/g, '\n\n');
   const shots = p.media.length
-    ? `<div class="shots${p.format === 'phone' ? ' phone' : ''}${p.media.length === 1 ? ' single' : ''}" style="--hue:${hue(p.id)}">${p.media
-        .map((m) => `<figure class="shot${m.size && m.size[0] > m.size[1] ? ' wide' : ''}"${ratio(m)}>${mediaTag(m, title, { eager: true })}</figure>`)
+    ? `<div class="shots${p.format === 'phone' ? ' phone' : ''}${p.media.length === 1 ? ' single' : ''}" style="--hue:${hue(p.id)}"${p.media.length > 1 ? ' data-slides' : ''}>${p.media
+        .map((m) => `<figure class="shot${m.size && m.size[0] > m.size[1] ? ' wide' : ''}"${ratio(m)}>${mediaTag(m, title, { eager: true, loop: p.media.length === 1 })}</figure>`)
         .join('')}</div>`
     : `<div class="media placeholder" style="--hue:${hue(p.id)}" aria-hidden="true"><span>${esc(title)}</span></div>`;
   return `<template id="detail-${esc(p.id)}">

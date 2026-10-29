@@ -152,6 +152,34 @@ footer.site {
   object-fit: cover;
 }
 
+/* several pictures: stacked, the active one fades in; dots say where we are */
+.media.slides .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease; }
+.media.slides .slide.active { opacity: 1; }
+
+.media .dots {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.3);
+  pointer-events: none;
+}
+
+.media .dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.45);
+  box-shadow: 0 0 3px rgb(0 0 0 / 0.35);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.media .dots i.active { background: #fff; transform: scale(1.25); }
+
 /* phone apps: up to three portrait screens side by side, rising from the bottom edge */
 .media.phones {
   display: flex;
