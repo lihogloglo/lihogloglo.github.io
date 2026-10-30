@@ -33,7 +33,8 @@ const io = 'IntersectionObserver' in window && !still
 
 function watchVideos(root) {
   for (const v of root.querySelectorAll('video')) {
-    if (!still && v.closest('[data-slides]')) continue; // the slideshow plays those
+    // the slideshow plays those; on a card, a tap opens the project instead
+    if (v.closest('.media.slides') || (!still && v.closest('[data-slides]'))) continue;
     if (io) io.observe(v);
     else {
       v.preload = 'metadata';
@@ -46,71 +47,122 @@ function watchVideos(root) {
 }
 
 // Slideshows: a picture stays DWELL ms, a video stays until it has played through once.
+// One the visitor picked by hand stays PICKED ms, so they have time to look at it.
 const DWELL = 4000;
+const PICKED = 8000;
 
 function slideshow(items, show) {
   let i = 0;
   let timer = 0;
   let running = false;
   const video = (k) => items[k].querySelector('video');
+  const wrap = (k) => (k + items.length) % items.length;
 
-  function hold() {
+  function hold(wait = DWELL) {
     clearTimeout(timer);
     const v = video(i);
     if (!v) {
-      timer = setTimeout(next, DWELL);
+      timer = setTimeout(next, wait);
       return;
     }
     v.currentTime = 0;
     v.onended = next;
-    v.play().catch(() => (timer = setTimeout(next, DWELL))); // autoplay refused: treat it as a picture
+    v.play().catch(() => (timer = setTimeout(next, wait))); // autoplay refused: treat it as a picture
+  }
+
+  function leave() {
+    const v = video(i);
+    if (v) v.onended = null;
+    v?.pause();
   }
 
   function next() {
     if (!running) return;
-    const v = video(i);
-    if (v) v.onended = null;
-    v?.pause();
-    i = (i + 1) % items.length;
+    leave();
+    i = wrap(i + 1);
     show(i);
     hold();
   }
 
   return {
-    start(from = i) {
+    get index() {
+      return i;
+    },
+    start(from = i, wait) {
       if (running) return;
       running = true;
-      i = from;
+      i = wrap(from);
       show(i);
-      hold();
+      hold(wait);
     },
     stop() {
       running = false;
       clearTimeout(timer);
-      const v = video(i);
-      if (v) v.onended = null;
-      v?.pause();
+      leave();
+    },
+    // show slide k now; if the show is running, it moves on from there after `wait`
+    go(k, wait) {
+      leave();
+      i = wrap(k);
+      show(i);
+      if (running) hold(wait);
     },
   };
 }
 
-// Cards: slides cross-fade, only while the card is on screen.
-if (!still && 'IntersectionObserver' in window) {
+// A horizontal drag (finger or mouse) calls step(±1) once it's clearly sideways.
+// Returns whether the last press turned into a swipe, so its click can be ignored.
+function swipe(el, step) {
+  let from = null;
+  let swiped = false;
+  el.addEventListener('pointerdown', (e) => {
+    from = e.isPrimary ? [e.clientX, e.clientY] : null;
+    swiped = false;
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!from || !e.buttons) return;
+    const dx = e.clientX - from[0];
+    if (Math.abs(dx) < 30 || Math.abs(dx) < Math.abs(e.clientY - from[1])) return;
+    from = null;
+    swiped = true;
+    step(dx < 0 ? 1 : -1);
+  });
+  for (const type of ['pointerup', 'pointercancel']) el.addEventListener(type, () => (from = null));
+  el.addEventListener('dragstart', (e) => e.preventDefault());
+  return () => swiped;
+}
+
+// Cards: slides cross-fade and move on by themselves while the card is on screen.
+// A swipe, an arrow or a dot picks one; a tap anywhere else opens the project.
+{
   const shows = new Map();
-  const onScreen = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) e.isIntersecting ? shows.get(e.target).start() : shows.get(e.target).stop();
-    },
-    { threshold: 0.4 }
-  );
+  const onScreen = !still && 'IntersectionObserver' in window
+    ? new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) e.isIntersecting ? shows.get(e.target).start() : shows.get(e.target).stop();
+        },
+        { threshold: 0.4 }
+      )
+    : null;
   for (const el of document.querySelectorAll('.grid [data-slides]')) {
     const slides = [...el.querySelectorAll('.slide')];
-    const dots = [...el.querySelectorAll('.dots i')];
-    shows.set(el, slideshow(slides, (k) => {
+    const dots = [...el.querySelectorAll('.dots button')];
+    const show = slideshow(slides, (k) => {
       slides.forEach((s, n) => s.classList.toggle('active', n === k));
       dots.forEach((d, n) => d.classList.toggle('active', n === k));
-    }));
-    onScreen.observe(el);
+    });
+    shows.set(el, show);
+    onScreen?.observe(el);
+
+    const swiped = swipe(el, (step) => show.go(show.index + step, PICKED));
+    el.addEventListener('click', (e) => {
+      if (swiped()) return;
+      const b = e.target.closest('button');
+      if (!b) el.closest('.card').querySelector('a.open').click();
+      else if (b.classList.contains('prev')) show.go(show.index - 1, PICKED);
+      else if (b.classList.contains('next')) show.go(show.index + 1, PICKED);
+      else show.go(dots.indexOf(b), PICKED);
+    });
   }
 }
 
@@ -126,13 +178,18 @@ if (sheet) {
   let current = null;
   let show = null;
   let idle = 0;
+  let fit = null;
 
   // The sheet's strip scrolls itself from shot to shot. When the visitor scrolls or
   // taps it, it stops, and picks up again from where they are after a while.
-  function autoScroll(strip) {
+  // The arrows step from shot to shot and keep it going from there.
+  function gallery(wrap) {
+    const strip = wrap.querySelector('.shots');
     const shots = [...strip.children];
     const centre = (s) => s.getBoundingClientRect().left + s.offsetWidth / 2 - strip.getBoundingClientRect().left;
+    let aim = null; // the shot a smooth scroll is heading for, until the visitor scrolls by hand
     show = slideshow(shots, (k) => {
+      aim = k;
       strip.scrollTo({ left: strip.scrollLeft + centre(shots[k]) - strip.clientWidth / 2, behavior: 'smooth' });
     });
     const nearest = () => {
@@ -140,12 +197,26 @@ if (sheet) {
       return d.indexOf(Math.min(...d));
     };
     const takeOver = () => {
+      aim = null;
       show.stop();
       clearTimeout(idle);
-      idle = setTimeout(() => show.start(nearest()), 8000);
+      if (!still) idle = setTimeout(() => show.start(nearest()), PICKED);
     };
     for (const type of ['pointerdown', 'wheel', 'touchstart', 'keydown']) strip.addEventListener(type, takeOver, { passive: true });
-    show.start(0);
+    for (const [side, step] of [['.prev', -1], ['.next', 1]])
+      wrap.querySelector(side).addEventListener('click', () => {
+        const k = (aim ?? nearest()) + step;
+        clearTimeout(idle);
+        if (still) show.go(k);
+        else {
+          show.stop();
+          show.start(k, PICKED);
+        }
+      });
+    // no arrows when every shot is already in view
+    fit = new ResizeObserver(() => wrap.classList.toggle('fits', strip.scrollWidth <= strip.clientWidth + 1));
+    fit.observe(strip);
+    if (!still) show.start(0);
   }
 
   function open(id, push) {
@@ -158,14 +229,16 @@ if (sheet) {
     if (push) history.pushState({ project: id }, '', `#${id}`);
     sheet.showModal();
     sheet.scrollTop = 0;
-    const strip = body.querySelector('.shots[data-slides]');
-    if (strip && !still) autoScroll(strip);
+    const wrap = body.querySelector('.gallery');
+    if (wrap) gallery(wrap);
   }
 
   sheet.addEventListener('close', () => {
     show?.stop();
     show = null;
     clearTimeout(idle);
+    fit?.disconnect();
+    fit = null;
     for (const v of body.querySelectorAll('video')) io?.unobserve(v);
     body.replaceChildren();
     if (location.hash === `#${current}`) {

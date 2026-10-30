@@ -21,14 +21,14 @@ const T = {
     kinds: { game: 'Jeu', app: 'Appli', explorable: 'Explorable', story: 'Histoire', engine: 'Moteur', tool: 'Outil' },
     never: 'pas encore de commit', commits: (n) => `${n} commit${n > 1 ? 's' : ''} ces 12 dernières semaines`,
     openSource: 'Open source', tba: 'Sortie : TBA', close: 'Fermer', noPosts: 'Rien pour l’instant.', back: '← Tous les articles',
-    updated: 'Mis à jour le', langTag: { fr: '', en: 'EN' }, notFound: 'Cette page n’existe pas.', home: 'Retour à l’accueil',
+    updated: 'Mis à jour le', prev: 'Image précédente', next: 'Image suivante', langTag: { fr: '', en: 'EN' }, notFound: 'Cette page n’existe pas.', home: 'Retour à l’accueil',
   },
   en: {
     projects: 'Projects', blog: 'Blog', other: 'Français', otherLang: 'fr',
     kinds: { game: 'Game', app: 'App', explorable: 'Explorable', story: 'Story', engine: 'Engine', tool: 'Tool' },
     never: 'no commits yet', commits: (n) => `${n} commit${n > 1 ? 's' : ''} in the last 12 weeks`,
     openSource: 'Open source', tba: 'Release: TBA', close: 'Close', noPosts: 'Nothing yet.', back: '← All posts',
-    updated: 'Updated', langTag: { fr: 'FR', en: '' }, notFound: 'This page doesn’t exist.', home: 'Back home',
+    updated: 'Updated', prev: 'Previous picture', next: 'Next picture', langTag: { fr: 'FR', en: '' }, notFound: 'This page doesn’t exist.', home: 'Back home',
   },
 };
 
@@ -147,7 +147,11 @@ function meta(p, t, lang) {
     </div>`;
 }
 
-function cover(p, title) {
+// Arrows to step through a slideshow by hand; only shown where there is a mouse.
+const arrows = (t) =>
+  `<button class="arrow prev" type="button" aria-label="${t.prev}"></button><button class="arrow next" type="button" aria-label="${t.next}"></button>`;
+
+function cover(p, title, t) {
   const style = `--hue:${hue(p.id)}`;
   if (!p.media.length)
     return `<div class="media placeholder" style="${style}" aria-hidden="true"><span>${esc(title)}</span></div>`;
@@ -159,7 +163,9 @@ function cover(p, title) {
   if (p.media.length > 1)
     return `<div class="media slides" style="${style}" data-slides>${p.media
       .map((m, i) => `<div class="slide${i ? '' : ' active'}">${mediaTag(m, title, { loop: false })}</div>`)
-      .join('')}<div class="dots" aria-hidden="true">${p.media.map((_, i) => `<i${i ? '' : ' class="active"'}></i>`).join('')}</div></div>`;
+      .join('')}${arrows(t)}<div class="dots">${p.media
+      .map((_, i) => `<button type="button" tabindex="-1" aria-label="${i + 1} / ${p.media.length}"${i ? '' : ' class="active"'}></button>`)
+      .join('')}</div></div>`;
   return `<div class="media" style="${style}">${mediaTag(p.media[0], title)}</div>`;
 }
 
@@ -177,7 +183,7 @@ function card(p, lang) {
   const title = pick(p.title, lang) ?? p.id;
   return `
 <article class="card">
-  ${cover(p, title)}
+  ${cover(p, title, T[lang])}
   <div class="body">
     ${meta(p, T[lang], lang)}
     <h2><a class="open" href="#${esc(p.id)}" data-project="${esc(p.id)}">${esc(title)}</a></h2>
@@ -193,11 +199,14 @@ function detail(p, lang) {
   const title = pick(p.title, lang) ?? p.id;
   // each line of `more` is its own paragraph, blank line or not
   const text = (pick(p.more, lang) ?? pick(p, lang) ?? '').replace(/\n+/g, '\n\n');
-  const shots = p.media.length
-    ? `<div class="shots${p.format === 'phone' ? ' phone' : ''}${p.media.length === 1 ? ' single' : ''}" style="--hue:${hue(p.id)}"${p.media.length > 1 ? ' data-slides' : ''}>${p.media
-        .map((m) => `<figure class="shot${m.size && m.size[0] > m.size[1] ? ' wide' : ''}"${ratio(m)}>${mediaTag(m, title, { eager: true, loop: p.media.length === 1 })}</figure>`)
-        .join('')}</div>`
-    : `<div class="media placeholder" style="--hue:${hue(p.id)}" aria-hidden="true"><span>${esc(title)}</span></div>`;
+  const strip = `<div class="shots${p.format === 'phone' ? ' phone' : ''}${p.media.length === 1 ? ' single' : ''}" style="--hue:${hue(p.id)}"${p.media.length > 1 ? ' data-slides' : ''}>${p.media
+    .map((m) => `<figure class="shot${m.size && m.size[0] > m.size[1] ? ' wide' : ''}"${ratio(m)}>${mediaTag(m, title, { eager: true, loop: p.media.length === 1 })}</figure>`)
+    .join('')}</div>`;
+  const shots = !p.media.length
+    ? `<div class="media placeholder" style="--hue:${hue(p.id)}" aria-hidden="true"><span>${esc(title)}</span></div>`
+    : p.media.length > 1
+      ? `<div class="gallery">${strip}${arrows(t)}</div>`
+      : strip;
   return `<template id="detail-${esc(p.id)}">
   ${shots}
   <div class="sheet-text">

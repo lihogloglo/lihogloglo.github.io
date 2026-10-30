@@ -152,24 +152,38 @@ footer.site {
   object-fit: cover;
 }
 
-/* several pictures: stacked, the active one fades in; dots say where we are */
+/* several pictures: stacked, the active one fades in; dots say where we are.
+   It sits above the card's link so it can be swiped; a plain tap still opens the project. */
+.media.slides { z-index: 2; cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.media.slides img { -webkit-user-drag: none; }
 .media.slides .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease; }
 .media.slides .slide.active { opacity: 1; }
 
 .media .dots {
   position: absolute;
   left: 50%;
-  bottom: 9px;
+  bottom: 6px;
   transform: translateX(-50%);
   display: flex;
-  gap: 5px;
-  padding: 4px 7px;
+  padding: 0 3px;
   border-radius: 999px;
   background: rgb(0 0 0 / 0.3);
-  pointer-events: none;
 }
 
-.media .dots i {
+/* each dot is a button with a bigger hit area than the dot it draws */
+.media .dots button {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.media .dots button::before {
+  content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -178,7 +192,50 @@ footer.site {
   transition: background 0.3s ease, transform 0.3s ease;
 }
 
-.media .dots i.active { background: #fff; transform: scale(1.25); }
+.media .dots button:hover::before { background: rgb(255 255 255 / 0.8); }
+.media .dots button.active::before { background: #fff; transform: scale(1.25); }
+
+/* previous / next, on the card's picture and the sheet's strip, for a mouse only:
+   a finger swipes instead */
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.5);
+  cursor: pointer;
+  display: none;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.15s ease;
+}
+
+.arrow::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+}
+
+.arrow.prev { left: 10px; }
+.arrow.prev::before { transform: translateX(2px) rotate(135deg); }
+.arrow.next { right: 10px; }
+.arrow.next::before { transform: translateX(-2px) rotate(-45deg); }
+.arrow:hover { background: rgb(0 0 0 / 0.75); }
+
+@media (hover: hover) {
+  .arrow { display: grid; }
+  .media.slides:hover .arrow, .gallery:hover .arrow, .arrow:focus-visible { opacity: 1; }
+}
+
+.gallery { position: relative; }
+.gallery.fits .arrow { display: none; } /* everything is already in view */
 
 /* phone apps: up to three portrait screens side by side, rising from the bottom edge */
 .media.phones {
@@ -431,4 +488,5 @@ a.chip:hover { background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
+  .media.slides .slide { transition: none; }
 }
